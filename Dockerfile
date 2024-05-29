@@ -184,6 +184,8 @@ RUN git clone https://gitlab.com/qemu-project/qemu.git /tmp/qemu && \
 	# config user.name and user.email to make 'git am' happy
 	git config user.name u-boot && \
 	git config user.email u-boot@denx.de && \
+ 	git cherry-pick d679c82488e237e84d01b19b9f4d36d765599a0c && \
+  	git cherry-pick 93fa768d402495ba907b9ccaef35c052835facf3 && \
 	./configure --prefix=/opt/qemu --target-list="aarch64-softmmu,arm-softmmu,i386-softmmu,loongarch64-softmmu,m68k-softmmu,mips-softmmu,mips64-softmmu,mips64el-softmmu,mipsel-softmmu,ppc-softmmu,riscv32-softmmu,riscv64-softmmu,sh4-softmmu,x86_64-softmmu,xtensa-softmmu" && \
 	make -j$(nproc) all install && \
 	rm -rf /tmp/qemu
