@@ -2,7 +2,7 @@
 # This Dockerfile is used to build an image containing basic stuff to be used
 # to build U-Boot and run our test suites.
 
-FROM ubuntu:jammy-20240227
+FROM ubuntu:noble-20240429
 MAINTAINER Tom Rini <trini@konsulko.com>
 LABEL Description=" This image is for building U-Boot inside a container"
 
@@ -125,14 +125,12 @@ RUN apt-get update && apt-get install -y \
 # Make kernels readable for libguestfs tools to work correctly
 RUN chmod +r /boot/vmlinu*
 
-# Build GRUB UEFI targets for ARM & RISC-V, 32-bit and 64-bit
+# Build GRUB UEFI targets for ARM & LoongArch64 & RISC-V, 32-bit and 64-bit
 RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
 	cd /tmp/grub && \
-	git checkout grub-2.06 && \
+	git checkout grub-2.12 && \
 	git config --global user.name "GitLab CI Runner" && \
 	git config --global user.email trini@konsulko.com && \
-	git cherry-pick 049efdd72eb7baa7b2bf8884391ee7fe650da5a0 && \
-	git cherry-pick 403d6540cd608b2706cfa0cb4713f7e4b490ff45 && \
 	./bootstrap && \
 	mkdir -p /opt/grub && \
 	./configure --target=aarch64 --with-platform=efi \
@@ -163,6 +161,19 @@ RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
 	search search_fs_file search_fs_uuid search_label serial sleep test \
 	true && \
 	make clean && \
+ 	./configure --target=loongarch64 --with-platform=efi \
+	CC=gcc \
+	TARGET_CC=/opt/gcc-13.2.0-nolibc/loongarch64-linux/bin/loongarch64-linux-gcc \
+	TARGET_OBJCOPY=/opt/gcc-13.2.0-nolibc/loongarch64-linux/bin/loongarch64-linux-objcopy \
+	TARGET_STRIP=/opt/gcc-13.2.0-nolibc/loongarch64-linux/bin/loongarch64-linux-strip \
+	TARGET_NM=/opt/gcc-13.2.0-nolibc/loongarch64-linux/bin/loongarch64-linux-nm \
+	TARGET_RANLIB=/opt/gcc-13.2.0-nolibc/loongarch64-linux/bin/loongarch64-linux-ranlib && \
+	make && \
+	./grub-mkimage -O loongarch64-efi -o /opt/grub/grubloongarch64.efi --prefix= -d \
+	grub-core cat chain configfile echo efinet ext2 fat halt help linux \
+	lsefisystab loadenv lvm minicmd normal part_msdos part_gpt reboot \
+	search search_fs_file search_fs_uuid search_label serial sleep test \
+	true && \
 	./configure --target=riscv64 --with-platform=efi \
 	CC=gcc \
 	TARGET_CC=/opt/gcc-13.2.0-nolibc/riscv64-linux/bin/riscv64-linux-gcc \
@@ -180,12 +191,12 @@ RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
 
 RUN git clone https://gitlab.com/qemu-project/qemu.git /tmp/qemu && \
 	cd /tmp/qemu && \
-	git checkout v8.2.4 && \
+	git checkout v9.0.0 && \
 	# config user.name and user.email to make 'git am' happy
 	git config user.name u-boot && \
 	git config user.email u-boot@denx.de && \
- 	git cherry-pick d679c82488e237e84d01b19b9f4d36d765599a0c && \
-  	git cherry-pick 93fa768d402495ba907b9ccaef35c052835facf3 && \
+ 	git cherry-pick 16b1ecee52effa3346fb34dcc351e4645e4ab53e && \
+  	git cherry-pick 085446905000d6b80978815594a7cd34d54ff46b && \
 	./configure --prefix=/opt/qemu --target-list="aarch64-softmmu,arm-softmmu,i386-softmmu,loongarch64-softmmu,m68k-softmmu,mips-softmmu,mips64-softmmu,mips64el-softmmu,mipsel-softmmu,ppc-softmmu,riscv32-softmmu,riscv64-softmmu,sh4-softmmu,x86_64-softmmu,xtensa-softmmu" && \
 	make -j$(nproc) all install && \
 	rm -rf /tmp/qemu
