@@ -9,9 +9,6 @@ LABEL Description=" This image is for building U-Boot inside a container"
 # Make sure apt is happy
 ENV DEBIAN_FRONTEND=noninteractive
 
-# Setup Git
-RUN git config user.name "U-Boot CI" && git config user.email u-boot@denx.de
-
 # Add LLVM repository
 RUN apt-get update && apt-get install -y gnupg2 wget xz-utils && rm -rf /var/lib/apt/lists/*
 RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
@@ -126,6 +123,9 @@ RUN apt-get update && apt-get install -y \
 
 # Make kernels readable for libguestfs tools to work correctly
 RUN chmod +r /boot/vmlinu*
+
+# Setup Git
+RUN git config user.name "U-Boot CI" && git config user.email u-boot@denx.de
 
 # Build GRUB UEFI targets for ARM & LoongArch64 & RISC-V, 32-bit and 64-bit
 RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
