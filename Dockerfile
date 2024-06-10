@@ -125,7 +125,7 @@ RUN apt-get update && apt-get install -y \
 RUN chmod +r /boot/vmlinu*
 
 # Setup Git
-RUN git config user.name "U-Boot CI" && git config user.email u-boot@denx.de
+RUN git config --global user.name "U-Boot CI" && git config --global user.email u-boot@denx.de
 
 # Build GRUB UEFI targets for ARM & LoongArch64 & RISC-V, 32-bit and 64-bit
 RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
