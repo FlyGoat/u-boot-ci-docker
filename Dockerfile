@@ -275,7 +275,7 @@ USER uboot:uboot
 RUN wget -O /tmp/pytest-requirements.txt https://source.denx.de/u-boot/u-boot/-/raw/master/test/py/requirements.txt
 RUN wget -O /tmp/sphinx-requirements.txt https://source.denx.de/u-boot/u-boot/-/raw/master/doc/sphinx/requirements.txt
 RUN wget -O /tmp/buildman-requirements.txt https://source.denx.de/u-boot/u-boot/-/raw/master/tools/buildman/requirements.txt
-RUN sed -i 's/pyyaml==6.0/pyyaml==6.1/g' /tmp/buildman-requirements.txt
+RUN sed -i 's/pyyaml==6.0/pyyaml==6.0.1/g' /tmp/buildman-requirements.txt
 RUN virtualenv -p /usr/bin/python3 /tmp/venv && \
 	. /tmp/venv/bin/activate && \
 	pip install -r /tmp/pytest-requirements.txt \
