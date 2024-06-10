@@ -9,6 +9,9 @@ LABEL Description=" This image is for building U-Boot inside a container"
 # Make sure apt is happy
 ENV DEBIAN_FRONTEND=noninteractive
 
+# Setup Git
+RUN git config user.name "U-Boot CI" && git config user.email u-boot@denx.de
+
 # Add LLVM repository
 RUN apt-get update && apt-get install -y gnupg2 wget xz-utils && rm -rf /var/lib/apt/lists/*
 RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
@@ -128,8 +131,6 @@ RUN chmod +r /boot/vmlinu*
 RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
 	cd /tmp/grub && \
 	git checkout grub-2.12 && \
-	git config --global user.name "GitLab CI Runner" && \
-	git config --global user.email trini@konsulko.com && \
 	./bootstrap && \
 	mkdir -p /opt/grub && \
 	./configure --target=aarch64 --with-platform=efi \
@@ -192,9 +193,6 @@ RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
 RUN git clone https://gitlab.com/qemu-project/qemu.git /tmp/qemu && \
 	cd /tmp/qemu && \
 	git checkout v9.0.0 && \
-	# config user.name and user.email to make 'git am' happy
-	git config user.name u-boot && \
-	git config user.email u-boot@denx.de && \
  	git cherry-pick 16b1ecee52effa3346fb34dcc351e4645e4ab53e && \
   	git cherry-pick 085446905000d6b80978815594a7cd34d54ff46b && \
 	./configure --prefix=/opt/qemu --target-list="aarch64-softmmu,arm-softmmu,i386-softmmu,loongarch64-softmmu,m68k-softmmu,mips-softmmu,mips64-softmmu,mips64el-softmmu,mipsel-softmmu,ppc-softmmu,riscv32-softmmu,riscv64-softmmu,sh4-softmmu,x86_64-softmmu,xtensa-softmmu" && \
@@ -204,7 +202,7 @@ RUN git clone https://gitlab.com/qemu-project/qemu.git /tmp/qemu && \
 # Build fiptool
 RUN git clone https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git /tmp/tf-a && \
 	cd /tmp/tf-a/ && \
-	git checkout v2.10.0 && \
+	git checkout lts-v2.10.4 && \
 	cd tools/fiptool && \
 	make && \
 	mkdir -p /usr/local/bin && \
@@ -212,12 +210,12 @@ RUN git clone https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git /tmp/t
 	rm -rf /tmp/tf-a
 
 # Build genimage (required by some targets to generate disk images)
-RUN wget -O - https://github.com/pengutronix/genimage/releases/download/v14/genimage-14.tar.xz | tar -C /tmp -xJ && \
-	cd /tmp/genimage-14 && \
+RUN wget -O - https://github.com/pengutronix/genimage/releases/download/v17/genimage-17.tar.xz | tar -C /tmp -xJ && \
+	cd /tmp/genimage-17 && \
 	./configure && \
 	make -j$(nproc) && \
 	make install && \
-	rm -rf /tmp/genimage-14
+	rm -rf /tmp/genimage-17
 
 # Build libtpms
 RUN git clone https://github.com/stefanberger/libtpms /tmp/libtpms && \
@@ -248,15 +246,15 @@ RUN mkdir /tmp/trace && \
     cd /tmp/trace/libtracefs && \
     make -j$(nproc) && \
     sudo make install && \
-    git clone https://github.com/rostedt/trace-cmd.git /tmp/trace/trace-cmd && \
+    git clone https://git.kernel.org/pub/scm/utils/trace-cmd/trace-cmd.git /tmp/trace/trace-cmd && \
     cd /tmp/trace/trace-cmd && \
     make -j$(nproc) && \
     sudo make install && \
     rm -rf /tmp/trace
 
 # Build coreboot
-RUN wget -O - https://coreboot.org/releases/coreboot-4.22.01.tar.xz | tar -C /tmp -xJ && \
-    cd /tmp/coreboot-4.22.01 && \
+RUN wget -O - https://coreboot.org/releases/coreboot-24.05.tar.xz | tar -C /tmp -xJ && \
+    cd /tmp/coreboot-24.05 && \
     make crossgcc-i386 CPUS=$(nproc) && \
     make -C payloads/coreinfo olddefconfig && \
     make -C payloads/coreinfo && \
@@ -264,6 +262,7 @@ RUN wget -O - https://coreboot.org/releases/coreboot-4.22.01.tar.xz | tar -C /tm
     make -j $(nproc) && \
     sudo mkdir /opt/coreboot && \
     sudo cp build/coreboot.rom build/cbfstool /opt/coreboot/
+    rm -rf /tmp/coreboot-24.05
 
 # Create our user/group
 RUN echo uboot ALL=NOPASSWD: ALL > /etc/sudoers.d/uboot
