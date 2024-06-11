@@ -2,7 +2,7 @@
 # This Dockerfile is used to build an image containing basic stuff to be used
 # to build U-Boot and run our test suites.
 
-FROM ubuntu:noble-20240429
+FROM ubuntu:noble
 MAINTAINER Tom Rini <trini@konsulko.com>
 LABEL Description=" This image is for building U-Boot inside a container"
 
@@ -121,11 +121,12 @@ RUN apt-get update && apt-get install -y \
 	zip \
 	&& rm -rf /var/lib/apt/lists/*
 
+# Setup Git
+RUN git config --global user.name "U-Boot CI" && \
+	git config --global user.email u-boot@denx.de
+
 # Make kernels readable for libguestfs tools to work correctly
 RUN chmod +r /boot/vmlinu*
-
-# Setup Git
-RUN git config --global user.name "U-Boot CI" && git config --global user.email u-boot@denx.de
 
 # Build GRUB UEFI targets for ARM & LoongArch64 & RISC-V, 32-bit and 64-bit
 RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
@@ -161,7 +162,7 @@ RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
 	search search_fs_file search_fs_uuid search_label serial sleep test \
 	true && \
 	make clean && \
- 	./configure --target=loongarch64 --with-platform=efi \
+	./configure --target=loongarch64 --with-platform=efi \
 	CC=gcc \
 	TARGET_CC=/opt/gcc-13.2.0-nolibc/loongarch64-linux/bin/loongarch64-linux-gcc \
 	TARGET_OBJCOPY=/opt/gcc-13.2.0-nolibc/loongarch64-linux/bin/loongarch64-linux-objcopy \
@@ -174,7 +175,7 @@ RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
 	lsefisystab loadenv lvm minicmd normal part_msdos part_gpt reboot \
 	search search_fs_file search_fs_uuid search_label serial sleep test \
 	true && \
- 	make clean && \
+	make clean && \
 	./configure --target=riscv64 --with-platform=efi \
 	CC=gcc \
 	TARGET_CC=/opt/gcc-13.2.0-nolibc/riscv64-linux/bin/riscv64-linux-gcc \
@@ -193,8 +194,8 @@ RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
 RUN git clone https://gitlab.com/qemu-project/qemu.git /tmp/qemu && \
 	cd /tmp/qemu && \
 	git checkout v9.0.0 && \
- 	git cherry-pick 16b1ecee52effa3346fb34dcc351e4645e4ab53e && \
-  	git cherry-pick 085446905000d6b80978815594a7cd34d54ff46b && \
+	git cherry-pick 16b1ecee52effa3346fb34dcc351e4645e4ab53e && \
+ 	git cherry-pick 085446905000d6b80978815594a7cd34d54ff46b && \
 	./configure --prefix=/opt/qemu --target-list="aarch64-softmmu,arm-softmmu,i386-softmmu,loongarch64-softmmu,m68k-softmmu,mips-softmmu,mips64-softmmu,mips64el-softmmu,mipsel-softmmu,ppc-softmmu,riscv32-softmmu,riscv64-softmmu,sh4-softmmu,x86_64-softmmu,xtensa-softmmu" && \
 	make -j$(nproc) all install && \
 	rm -rf /tmp/qemu
@@ -271,12 +272,12 @@ USER uboot:uboot
 
 # Populate the cache for pip to use. Get these via wget as the
 # COPY / ADD directives don't work as we need them to.
-RUN wget -O /tmp/pytest-requirements.txt https://source.denx.de/u-boot/u-boot/-/raw/master/test/py/requirements.txt
-RUN wget -O /tmp/sphinx-requirements.txt https://source.denx.de/u-boot/u-boot/-/raw/master/doc/sphinx/requirements.txt
-RUN wget -O /tmp/buildman-requirements.txt https://source.denx.de/u-boot/u-boot/-/raw/master/tools/buildman/requirements.txt
-RUN sed -i 's/pyyaml==6.0/pyyaml==6.0.1/g' /tmp/buildman-requirements.txt
+RUN wget -O /tmp/pytest-requirements.txt https://gitlab.com/FlyGoat/u-boot/-/raw/b4/docker-image/test/py/requirements.txt
+RUN wget -O /tmp/sphinx-requirements.txt https://gitlab.com/FlyGoat/u-boot/-/raw/b4/docker-image/doc/sphinx/requirements.txt
+RUN wget -O /tmp/buildman-requirements.txt https://gitlab.com/FlyGoat/u-boot/-/raw/b4/docker-image/tools/buildman/requirements.txt
 RUN virtualenv -p /usr/bin/python3 /tmp/venv && \
 	. /tmp/venv/bin/activate && \
+	pip install setuptools && \
 	pip install -r /tmp/pytest-requirements.txt \
 		-r /tmp/sphinx-requirements.txt \
 		-r /tmp/buildman-requirements.txt && \
