@@ -99,11 +99,13 @@ RUN apt-get update && apt-get install -y \
 	python-is-python3 \
 	python3 \
 	python3-dev \
+ 	python3-jsonschema \
 	python3-pip \
 	python3-pyelftools \
 	python3-sphinx \
 	python3-virtualenv \
-	rpm2cpio \
+	pyyaml \
+ 	rpm2cpio \
 	sbsigntool \
 	socat \
 	softhsm2 \
@@ -119,6 +121,7 @@ RUN apt-get update && apt-get install -y \
 	vboot-utils \
 	xilinx-bootgen \
 	xxd \
+ 	yamllint \
 	zip \
 	&& rm -rf /var/lib/apt/lists/*
 
