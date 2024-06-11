@@ -56,6 +56,7 @@ RUN apt-get update && apt-get install -y \
 	gawk \
 	gdisk \
 	git \
+ 	gnat \
 	gnu-efi \
 	gnutls-dev \
 	graphviz \
@@ -256,6 +257,8 @@ RUN mkdir /tmp/trace && \
 # Build coreboot
 RUN wget -O - https://coreboot.org/releases/coreboot-24.05.tar.xz | tar -C /tmp -xJ && \
     cd /tmp/coreboot-24.05 && \
+    sed -i 's,https://ftpmirror.gnu.org,https://ftp.gnu.org/gnu,g' ./util/crossgcc/buildgcc  && \
+    sed -i 's,NASM_BASE_URL=.*,NASM_BASE_URL="https://distfiles.macports.org/nasm",g' ./util/crossgcc/buildgcc  && \
     make crossgcc-i386 CPUS=$(nproc) && \
     make -C payloads/coreinfo olddefconfig && \
     make -C payloads/coreinfo && \
