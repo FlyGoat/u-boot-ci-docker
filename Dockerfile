@@ -201,7 +201,7 @@ RUN git clone https://gitlab.com/qemu-project/qemu.git /tmp/qemu && \
 	rm -rf /tmp/qemu
 
 # Build fiptool
-RUN git clone https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git /tmp/tf-a && \
+RUN git clone https://github.com/ARM-software/arm-trusted-firmware.git /tmp/tf-a && \
 	cd /tmp/tf-a/ && \
 	git checkout lts-v2.10.4 && \
 	cd tools/fiptool && \
