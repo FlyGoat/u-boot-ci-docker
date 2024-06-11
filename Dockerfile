@@ -104,8 +104,8 @@ RUN apt-get update && apt-get install -y \
 	python3-pyelftools \
 	python3-sphinx \
 	python3-virtualenv \
-	pyyaml \
- 	rpm2cpio \
+	python3-yaml \
+	rpm2cpio \
 	sbsigntool \
 	socat \
 	softhsm2 \
