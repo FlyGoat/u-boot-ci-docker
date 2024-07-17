@@ -104,6 +104,7 @@ RUN apt-get update && apt-get install -y \
 	python3-pip \
 	python3-pyelftools \
 	python3-sphinx \
+ 	python3-venv \
 	python3-virtualenv \
 	python3-yaml \
 	rpm2cpio \
