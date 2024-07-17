@@ -2,7 +2,7 @@
 # This Dockerfile is used to build an image containing basic stuff to be used
 # to build U-Boot and run our test suites.
 
-FROM ubuntu:noble
+FROM ubuntu:jammy-20240627.1
 MAINTAINER Tom Rini <trini@konsulko.com>
 LABEL Description=" This image is for building U-Boot inside a container"
 
@@ -12,7 +12,7 @@ ENV DEBIAN_FRONTEND=noninteractive
 # Add LLVM repository
 RUN apt-get update && apt-get install -y gnupg2 wget xz-utils && rm -rf /var/lib/apt/lists/*
 RUN wget -O - https://apt.llvm.org/llvm-snapshot.gpg.key | apt-key add -
-RUN echo deb http://apt.llvm.org/noble/ llvm-toolchain-noble-17 main | tee /etc/apt/sources.list.d/llvm.list
+RUN echo deb http://apt.llvm.org/jammy/ llvm-toolchain-jammy-17 main | tee /etc/apt/sources.list.d/llvm.list
 
 # Manually install the kernel.org "Crosstool" based toolchains for gcc-13.2.0
 RUN wget -O - https://mirrors.edge.kernel.org/pub/tools/crosstool/files/bin/x86_64/13.2.0/x86_64-gcc-13.2.0-nolibc-aarch64-linux.tar.xz | tar -C /opt -xJ
@@ -56,7 +56,7 @@ RUN apt-get update && apt-get install -y \
 	gawk \
 	gdisk \
 	git \
- 	gnat \
+	gnat \
 	gnu-efi \
 	gnutls-dev \
 	graphviz \
@@ -97,9 +97,10 @@ RUN apt-get update && apt-get install -y \
 	parted \
 	pkg-config \
 	python-is-python3 \
+	python2.7 \
 	python3 \
 	python3-dev \
- 	python3-jsonschema \
+	python3-jsonschema \
 	python3-pip \
 	python3-pyelftools \
 	python3-sphinx \
@@ -121,7 +122,7 @@ RUN apt-get update && apt-get install -y \
 	vboot-utils \
 	xilinx-bootgen \
 	xxd \
- 	yamllint \
+	yamllint \
 	zip \
 	&& rm -rf /var/lib/apt/lists/*
 
@@ -197,15 +198,13 @@ RUN git clone git://git.savannah.gnu.org/grub.git /tmp/grub && \
 
 RUN git clone https://gitlab.com/qemu-project/qemu.git /tmp/qemu && \
 	cd /tmp/qemu && \
-	git checkout v9.0.0 && \
-	git cherry-pick 16b1ecee52effa3346fb34dcc351e4645e4ab53e && \
- 	git cherry-pick 085446905000d6b80978815594a7cd34d54ff46b && \
+	git checkout v9.0.1 && \
 	./configure --prefix=/opt/qemu --target-list="aarch64-softmmu,arm-softmmu,i386-softmmu,loongarch64-softmmu,m68k-softmmu,mips-softmmu,mips64-softmmu,mips64el-softmmu,mipsel-softmmu,ppc-softmmu,riscv32-softmmu,riscv64-softmmu,sh4-softmmu,x86_64-softmmu,xtensa-softmmu" && \
 	make -j$(nproc) all install && \
 	rm -rf /tmp/qemu
 
 # Build fiptool
-RUN git clone https://github.com/ARM-software/arm-trusted-firmware.git /tmp/tf-a && \
+RUN git clone https://git.trustedfirmware.org/TF-A/trusted-firmware-a.git /tmp/tf-a && \
 	cd /tmp/tf-a/ && \
 	git checkout lts-v2.10.4 && \
 	cd tools/fiptool && \
@@ -260,16 +259,16 @@ RUN mkdir /tmp/trace && \
 # Build coreboot
 RUN wget -O - https://coreboot.org/releases/coreboot-24.05.tar.xz | tar -C /tmp -xJ && \
     cd /tmp/coreboot-24.05 && \
-    sed -i 's,https://ftpmirror.gnu.org,https://ftp.gnu.org/gnu,g' ./util/crossgcc/buildgcc  && \
-    sed -i 's,NASM_BASE_URL=.*,NASM_BASE_URL="https://distfiles.macports.org/nasm",g' ./util/crossgcc/buildgcc  && \
     make crossgcc-i386 CPUS=$(nproc) && \
     make -C payloads/coreinfo olddefconfig && \
     make -C payloads/coreinfo && \
     make olddefconfig && \
     make -j $(nproc) && \
     sudo mkdir /opt/coreboot && \
+    sudo cp build/coreboot.rom build/cbfstool /opt/coreboot/
     sudo cp build/coreboot.rom build/cbfstool /opt/coreboot/ && \
     rm -rf /tmp/coreboot-24.05
+	 
 
 # Create our user/group
 RUN echo uboot ALL=NOPASSWD: ALL > /etc/sudoers.d/uboot
@@ -283,7 +282,6 @@ RUN wget -O /tmp/sphinx-requirements.txt https://gitlab.com/FlyGoat/u-boot/-/raw
 RUN wget -O /tmp/buildman-requirements.txt https://gitlab.com/FlyGoat/u-boot/-/raw/b4/docker-image/tools/buildman/requirements.txt
 RUN virtualenv -p /usr/bin/python3 /tmp/venv && \
 	. /tmp/venv/bin/activate && \
-	pip install setuptools && \
 	pip install -r /tmp/pytest-requirements.txt \
 		-r /tmp/sphinx-requirements.txt \
 		-r /tmp/buildman-requirements.txt && \
