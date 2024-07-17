@@ -265,7 +265,6 @@ RUN wget -O - https://coreboot.org/releases/coreboot-24.05.tar.xz | tar -C /tmp 
     make olddefconfig && \
     make -j $(nproc) && \
     sudo mkdir /opt/coreboot && \
-    sudo cp build/coreboot.rom build/cbfstool /opt/coreboot/
     sudo cp build/coreboot.rom build/cbfstool /opt/coreboot/ && \
     rm -rf /tmp/coreboot-24.05
 	 
